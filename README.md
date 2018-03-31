@@ -179,9 +179,12 @@ It'll automatically compile them into regular expressions, escaping them where n
 
 ```js
     moo.compile({
-      IDEN: {match: /[a-zA-Z]+/, keywords: {
-        KW: ['while', 'if', 'else', 'moo', 'cows']),
-      }},
+      IDEN: {
+        match: /[a-zA-Z]+/,
+        type: moo.keywords({
+          KW: ['while', 'if', 'else', 'moo', 'cows']),
+        }),
+      },
       SPACE: {match: /\s+/, lineBreaks: true},
     })
 ```
@@ -337,10 +340,14 @@ Use [itt](https://github.com/nathan/itt)'s iteration tools with Moo.
 ```
 
 
-Transform
----------
+Transforms
+----------
 
-Moo doesn't allow capturing groups, but you can supply a transform function, `value()`, which will be called on the value before storing it in the Token object.
+The **value** transform takes the matched `text`, and returns the `value` which should be stored in the Token object. By default, the `text` of a Token is the same as the `value`.
+
+
+Moo doesn't allow capturing groups in RegExps: use value() instead.
+
 
 ```js
     moo.compile({
@@ -350,6 +357,24 @@ Moo doesn't allow capturing groups, but you can supply a transform function, `va
         {match: /'(?:\\['\\rn]|[^'\\])*?'/, lineBreaks: true, value: x => x.slice(1, -1)},
       ],
       // ...
+    })
+```
+
+The **type** transform takes the matched `text` and returns the `type`. By default, the rule name is used.
+
+```js
+    const caseInsensitiveKeywords = map => {
+      const transform = moo.keywords(map)
+      return text => transform(text.toLowerCase())
+    }
+
+    const lexer = moo.compile({
+      identifier: {
+        match: /[a-zA-Z]+/,
+        type: caseInsensitiveKeywords({
+          keyword: ['class', 'def'],
+        }),
+      },
     })
 ```
 
