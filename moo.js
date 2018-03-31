@@ -422,23 +422,6 @@
     return new Lexer(this.states, this.state)
   }
 
-  Lexer.prototype.has = function(tokenType) {
-    for (var s in this.states) {
-      var state = this.states[s]
-      if (state.error && state.error.tokenType === tokenType) return true
-      var groups = state.groups
-      for (var i = 0; i < groups.length; i++) {
-        var group = groups[i]
-        if (group.tokenType === tokenType) return true
-        if (group.keywords && hasOwnProperty.call(group.keywords, tokenType)) {
-          return true
-        }
-      }
-    }
-    return false
-  }
-
-
   return {
     compile: compile,
     states: compileStates,
