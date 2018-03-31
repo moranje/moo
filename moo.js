@@ -77,10 +77,10 @@
     var result = []
     for (var i = 0; i < array.length; i++) {
       var obj = array[i]
-      if (!obj.name) {
-        throw new Error('Rule has no name: ' + JSON.stringify(obj))
+      if (!obj.type) {
+        throw new Error('Rule has no type: ' + JSON.stringify(obj))
       }
-      result.push(ruleOptions(obj.name, obj))
+      result.push(ruleOptions(obj.type, obj))
     }
     return result
   }
