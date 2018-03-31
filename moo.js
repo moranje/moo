@@ -92,14 +92,13 @@
 
     // nb. error implies lineBreaks
     var options = {
-      tokenType: name,
+      type: name,
       lineBreaks: !!obj.error,
       pop: false,
       next: null,
       push: null,
       error: false,
       value: null,
-      getType: null,
     }
 
     // Avoid Object.assign(), so we support IE9+
@@ -117,7 +116,7 @@
            : isRegExp(b) ? -1 : isRegExp(a) ? +1 : b.length - a.length
     })
     if (options.keywords) {
-      options.getType = keywordTransform(options.keywords)
+      options.type = keywordTransform(options.keywords, options.type)
     }
     return options
   }
@@ -133,7 +132,7 @@
 
       if (options.error) {
         if (errorRule) {
-          throw new Error("Multiple error rules not allowed: (for token '" + options.tokenType + "')")
+          throw new Error("Multiple error rules not allowed: (for token '" + options.type + "')")
         }
         errorRule = options
       }
@@ -157,7 +156,7 @@
         throw new Error("RegExp has capture groups: " + regexp + "\nUse (?: … ) instead")
       }
       if (!hasStates && (options.pop || options.push || options.next)) {
-        throw new Error("State-switching options are not allowed in stateless lexers (for token '" + options.tokenType + "')")
+        throw new Error("State-switching options are not allowed in stateless lexers (for token '" + options.type + "')")
       }
 
       // try and detect rules matching newlines
@@ -197,10 +196,10 @@
         var g = groups[j]
         var state = g && (g.push || g.next)
         if (state && !map[state]) {
-          throw new Error("Missing state '" + state + "' (in token '" + g.tokenType + "' of state '" + keys[i] + "')")
+          throw new Error("Missing state '" + state + "' (in token '" + g.type + "' of state '" + keys[i] + "')")
         }
         if (g && g.pop && +g.pop !== 1) {
-          throw new Error("pop must be 1 (in token '" + g.tokenType + "' of state '" + keys[i] + "')")
+          throw new Error("pop must be 1 (in token '" + g.type + "' of state '" + keys[i] + "')")
         }
       }
     }
@@ -208,7 +207,7 @@
     return new Lexer(map, start)
   }
 
-  function keywordTransform(map) {
+  function keywordTransform(map, defaultType) {
     var reverseMap = Object.create(null)
     var byLength = Object.create(null)
     var types = Object.getOwnPropertyNames(map)
@@ -242,8 +241,9 @@
       source += '}\n'
     }
     source += '}\n'
+    source += 'return ' + str(defaultType) + '\n'
     source += '})'
-    return eval(source) // getType
+    return eval(source) // type
   }
 
   /***************************************************************************/
@@ -357,8 +357,8 @@
     }
 
     var token = {
-      type: (group.getType && group.getType(text)) || group.tokenType,
-      value: group.value ? group.value(text) : text,
+      type: typeof group.type === 'function' ? group.type(text) : group.type,
+      value: typeof group.value === 'function' ? group.value(text) : text,
       text: text,
       toString: tokenToString,
       offset: index,

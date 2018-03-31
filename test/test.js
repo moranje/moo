@@ -596,7 +596,7 @@ describe('errors', () => {
       digits: /[0-9]+/,
       error: moo.error,
     })
-    expect(lexer.error).toMatchObject({tokenType: 'error'})
+    expect(lexer.error).toMatchObject({type: 'error'})
     lexer.reset('123foo')
     expect(lexer.next()).toMatchObject({type: 'digits', value: '123'})
     expect(lexer.next()).toMatchObject({type: 'error', value: 'foo', offset: 3})
