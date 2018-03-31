@@ -119,6 +119,9 @@
     if (options.keywords) {
       options.type = keywordTransform(options.keywords)
     }
+    if (typeof options.type === 'string' && options.type !== options.defaultType) {
+      throw new Error("Type transform cannot be a string: (type '" + options.type + "' for token '" + options.defaultType + "')")
+    }
     return options
   }
 
@@ -426,6 +429,7 @@
     compile: compile,
     states: compileStates,
     error: Object.freeze({error: true}),
+    keywords: keywordTransform,
   }
 
 }))
