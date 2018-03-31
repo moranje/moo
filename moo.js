@@ -92,6 +92,7 @@
 
     // nb. error implies lineBreaks
     var options = {
+      defaultType: name,
       type: name,
       lineBreaks: !!obj.error,
       pop: false,
@@ -116,7 +117,7 @@
            : isRegExp(b) ? -1 : isRegExp(a) ? +1 : b.length - a.length
     })
     if (options.keywords) {
-      options.type = keywordTransform(options.keywords, options.type)
+      options.type = keywordTransform(options.keywords)
     }
     return options
   }
@@ -132,7 +133,7 @@
 
       if (options.error) {
         if (errorRule) {
-          throw new Error("Multiple error rules not allowed: (for token '" + options.type + "')")
+          throw new Error("Multiple error rules not allowed: (for token '" + options.defaultType + "')")
         }
         errorRule = options
       }
@@ -156,7 +157,7 @@
         throw new Error("RegExp has capture groups: " + regexp + "\nUse (?: … ) instead")
       }
       if (!hasStates && (options.pop || options.push || options.next)) {
-        throw new Error("State-switching options are not allowed in stateless lexers (for token '" + options.type + "')")
+        throw new Error("State-switching options are not allowed in stateless lexers (for token '" + options.defaultType + "')")
       }
 
       // try and detect rules matching newlines
@@ -196,10 +197,10 @@
         var g = groups[j]
         var state = g && (g.push || g.next)
         if (state && !map[state]) {
-          throw new Error("Missing state '" + state + "' (in token '" + g.type + "' of state '" + keys[i] + "')")
+          throw new Error("Missing state '" + state + "' (in token '" + g.defaultType + "' of state '" + keys[i] + "')")
         }
         if (g && g.pop && +g.pop !== 1) {
-          throw new Error("pop must be 1 (in token '" + g.type + "' of state '" + keys[i] + "')")
+          throw new Error("pop must be 1 (in token '" + g.defaultType + "' of state '" + keys[i] + "')")
         }
       }
     }
@@ -207,7 +208,7 @@
     return new Lexer(map, start)
   }
 
-  function keywordTransform(map, defaultType) {
+  function keywordTransform(map) {
     var reverseMap = Object.create(null)
     var byLength = Object.create(null)
     var types = Object.getOwnPropertyNames(map)
@@ -241,7 +242,6 @@
       source += '}\n'
     }
     source += '}\n'
-    source += 'return ' + str(defaultType) + '\n'
     source += '})'
     return eval(source) // type
   }
@@ -357,7 +357,7 @@
     }
 
     var token = {
-      type: typeof group.type === 'function' ? group.type(text) : group.type,
+      type: (typeof group.type === 'function' && group.type(text)) || group.defaultType,
       value: typeof group.value === 'function' ? group.value(text) : text,
       text: text,
       toString: tokenToString,
